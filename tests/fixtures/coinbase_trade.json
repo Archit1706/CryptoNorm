@@ -1,0 +1,20 @@
+{
+  "channel": "market_trades",
+  "timestamp": "2026-06-23T20:07:41.35881632Z",
+  "sequence_num": 2,
+  "events": [
+    {
+      "type": "update",
+      "trades": [
+        {
+          "product_id": "BTC-USD",
+          "trade_id": "1042333849",
+          "price": "62404.79",
+          "size": "0.00000001",
+          "time": "2026-06-23T20:07:41.282366Z",
+          "side": "BUY"
+        }
+      ]
+    }
+  ]
+}
