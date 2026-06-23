@@ -1,0 +1,23 @@
+{
+  "channel": "l2_data",
+  "timestamp": "2026-06-23T20:08:02.9174521Z",
+  "sequence_num": 0,
+  "events": [
+    {
+      "type": "snapshot",
+      "product_id": "BTC-USD",
+      "updates": [
+        {"side": "bid", "event_time": "2026-06-23T20:08:02.632901Z", "price_level": "62416.02", "new_quantity": "0.11432512"},
+        {"side": "bid", "event_time": "2026-06-23T20:08:02.632901Z", "price_level": "62415.77", "new_quantity": "0.00006024"},
+        {"side": "bid", "event_time": "2026-06-23T20:08:02.632901Z", "price_level": "62414.01", "new_quantity": "0.01516741"},
+        {"side": "bid", "event_time": "2026-06-23T20:08:02.632901Z", "price_level": "62414", "new_quantity": "0.0057"},
+        {"side": "bid", "event_time": "2026-06-23T20:08:02.632901Z", "price_level": "62413.75", "new_quantity": "0.12817687"},
+        {"side": "offer", "event_time": "2026-06-23T20:08:02.632901Z", "price_level": "62416.03", "new_quantity": "0.05664818"},
+        {"side": "offer", "event_time": "2026-06-23T20:08:02.632901Z", "price_level": "62416.98", "new_quantity": "0.0750428"},
+        {"side": "offer", "event_time": "2026-06-23T20:08:02.632901Z", "price_level": "62417.2", "new_quantity": "0.000018"},
+        {"side": "offer", "event_time": "2026-06-23T20:08:02.632901Z", "price_level": "62417.99", "new_quantity": "0.01516741"},
+        {"side": "offer", "event_time": "2026-06-23T20:08:02.632901Z", "price_level": "62418", "new_quantity": "0.0057"}
+      ]
+    }
+  ]
+}
