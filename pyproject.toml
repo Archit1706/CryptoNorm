@@ -1,0 +1,59 @@
+[project]
+name = "cryptonorm"
+version = "0.1.0"
+description = "Real-time crypto market-data normalizer + P&L/risk dashboard"
+requires-python = ">=3.11"
+dependencies = [
+    "pydantic>=2.6",
+    "pydantic-settings>=2.2",   # BaseSettings lives here in pydantic v2
+    "structlog>=24.1",
+    "websockets>=12.0",
+    "aiohttp>=3.9",             # REST snapshots (book resync) + Kraken/Binance helpers
+    "aiokafka>=0.10",           # phase 2+
+    "redis>=5.0",               # phase 2+ (redis.asyncio)
+    "sortedcontainers>=2.4",    # O(log n) L2 book maintenance + O(1) best bid/ask
+    "fastapi>=0.110",           # phase 5
+    "uvicorn[standard]>=0.29",  # phase 5
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "pytest-asyncio>=0.23",
+    "ruff>=0.4",
+    "mypy>=1.10",
+]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+cryptonorm = ["api/static/*.html"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "ASYNC", "SIM", "RUF"]
+
+[tool.mypy]
+python_version = "3.11"
+packages = ["cryptonorm"]
+mypy_path = "src"
+strict = true
+warn_unreachable = true
+disallow_untyped_defs = true
+
+[[tool.mypy.overrides]]
+module = ["aiokafka.*", "sortedcontainers.*"]
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
