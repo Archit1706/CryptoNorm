@@ -1,0 +1,89 @@
+# Full stack: Kafka (KRaft, no Zookeeper) + Redis + the four app services.
+#
+#   docker compose up -d --build      # bring up everything
+#   docker compose ps                 # check health
+#   open http://localhost:8000        # dashboard
+#
+# Host access:   Kafka -> localhost:29092 , Redis -> localhost:6380 , UI -> :8000
+# In-network:    Kafka -> kafka:9092       , Redis -> redis:6379
+
+# Shared definition for the four Python app services (one image, different command).
+x-app: &app
+  build: .
+  image: cryptonorm:latest
+  depends_on:
+    kafka: { condition: service_healthy }
+    redis: { condition: service_healthy }
+  environment:
+    CN_KAFKA_BOOTSTRAP: kafka:9092
+    CN_REDIS_URL: redis://redis:6379/0
+    CN_LOG_JSON: "true"
+  restart: unless-stopped
+  stop_grace_period: 15s   # allow graceful drain on SIGTERM (docker stop)
+
+services:
+  kafka:
+    image: apache/kafka:3.7.0
+    container_name: cn-kafka
+    ports:
+      - "29092:29092" # host-facing listener
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093,PLAINTEXT_HOST://:29092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+      KAFKA_NUM_PARTITIONS: 1
+      # Full L2 book snapshots exceed Kafka's 1 MB default message size.
+      KAFKA_MESSAGE_MAX_BYTES: 10485760
+      KAFKA_REPLICA_FETCH_MAX_BYTES: 10485760
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/kafka/bin/kafka-topics.sh --bootstrap-server localhost:9092 --list || exit 1"]
+      interval: 10s
+      timeout: 10s
+      retries: 10
+      start_period: 20s
+
+  redis:
+    image: redis:7-alpine
+    container_name: cn-redis
+    ports:
+      # 6380 on the host to avoid clashing with a local Redis on the default
+      # 6379 (Windows resolves localhost to ::1, which a host Redis can shadow).
+      - "6380:6379"
+    command: ["redis-server", "--save", "", "--appendonly", "no"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  ingest:
+    <<: *app
+    container_name: cn-ingest
+    command: ["python", "-m", "cryptonorm.services.run_ingest"]
+
+  pipeline:
+    <<: *app
+    container_name: cn-pipeline
+    command: ["python", "-m", "cryptonorm.services.run_pipeline"]
+
+  sim:
+    <<: *app
+    container_name: cn-sim
+    command: ["python", "-m", "cryptonorm.services.run_sim"]
+
+  dashboard:
+    <<: *app
+    container_name: cn-dashboard
+    command: ["python", "-m", "cryptonorm.services.run_api"]
+    ports:
+      - "8000:8000"
