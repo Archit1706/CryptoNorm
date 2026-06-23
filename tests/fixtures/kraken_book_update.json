@@ -1,0 +1,18 @@
+{
+  "channel": "book",
+  "type": "update",
+  "data": [
+    {
+      "symbol": "BTC/USD",
+      "bids": [
+        {
+          "price": 62369.9,
+          "qty": 0.019
+        }
+      ],
+      "asks": [],
+      "checksum": 3459666176,
+      "timestamp": "2026-06-23T20:48:49.620953Z"
+    }
+  ]
+}
