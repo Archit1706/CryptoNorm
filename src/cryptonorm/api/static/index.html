@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>cryptonorm — desk dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0d13; --panel: #141823; --panel2: #1b2130; --border: #283043;
+    --fg: #e6edf6; --muted: #8893a7; --accent: #6cb6ff;
+    --up: #4ad17c; --down: #ff6b63; --warn: #e3b341; --crit: #ff6b63;
+    --ui: "Inter", system-ui, -apple-system, sans-serif;
+    --mono: "JetBrains Mono", ui-monospace, "Cascadia Code", Consolas, monospace;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--fg);
+    font: 16px/1.5 var(--ui); -webkit-font-smoothing: antialiased; }
+  header { display: flex; align-items: center; gap: 18px; padding: 16px 28px;
+    background: linear-gradient(180deg, #161b27, #11151f);
+    border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 10; }
+  header h1 { font-size: 20px; font-weight: 700; margin: 0; letter-spacing: -.2px; }
+  header h1 span { color: var(--accent); }
+  .conn { display: inline-flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 500; }
+  .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--down);
+    box-shadow: 0 0 0 0 rgba(74,209,124,.5); transition: background .3s; }
+  .dot.on { background: var(--up); animation: pulse 2s infinite; }
+  @keyframes pulse { 0%{box-shadow:0 0 0 0 rgba(74,209,124,.5);} 70%{box-shadow:0 0 0 6px rgba(74,209,124,0);} 100%{box-shadow:0 0 0 0 rgba(74,209,124,0);} }
+  .spacer { flex: 1; }
+  .muted { color: var(--muted); }
+  main { padding: 24px 28px 48px; display: grid; gap: 22px; max-width: 1500px; margin: 0 auto; }
+  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; }
+  .card { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 18px 20px; }
+  .card .label { color: var(--muted); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .8px; }
+  .card .val { font-family: var(--mono); font-size: 30px; font-weight: 600; margin-top: 8px; letter-spacing: -.5px; }
+  .grid2 { display: grid; grid-template-columns: 1.35fr 1fr; gap: 22px; align-items: start; }
+  @media (max-width: 960px) { .grid2 { grid-template-columns: 1fr; } main { padding: 16px; } }
+  .col { display: grid; gap: 22px; }
+  .panel { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+  .panel h2 { font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: .8px; color: var(--muted);
+    margin: 0; padding: 14px 18px; border-bottom: 1px solid var(--border); background: var(--panel2); }
+  table { width: 100%; border-collapse: collapse; font-family: var(--mono); font-size: 15px; }
+  th, td { text-align: right; padding: 11px 18px; border-bottom: 1px solid var(--border); white-space: nowrap; }
+  th { color: var(--muted); font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: .5px; }
+  td:first-child, th:first-child { text-align: left; font-family: var(--ui); font-weight: 500; }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:hover td { background: rgba(255,255,255,.02); }
+  .up { color: var(--up); } .down { color: var(--down); }
+  .pill { display: inline-block; padding: 3px 11px; border-radius: 20px; font-size: 12px; font-weight: 600; font-family: var(--ui); }
+  .pill.ok { background: rgba(74,209,124,.16); color: var(--up); }
+  .pill.stale { background: rgba(255,107,99,.2); color: var(--down); }
+  .chips { display: flex; flex-wrap: wrap; gap: 10px; padding: 16px 18px; }
+  .chip { font-family: var(--mono); font-size: 13px; padding: 5px 12px; border-radius: 8px;
+    border: 1px solid var(--border); background: var(--panel2); }
+  .chip.ok { border-color: rgba(74,209,124,.4); } .chip.stale { border-color: var(--down); color: var(--down); }
+  #alerts { display: flex; flex-direction: column; gap: 10px; }
+  #alerts:empty { display: none; }
+  .alert { padding: 14px 18px; border-radius: 10px; font-size: 15px; font-weight: 600; border: 1px solid; display: flex; gap: 10px; align-items: center; }
+  .alert.warning { background: rgba(227,179,65,.12); border-color: rgba(227,179,65,.5); color: #f2cd6b; }
+  .alert.critical { background: rgba(255,107,99,.13); border-color: rgba(255,107,99,.55); color: #ff9b94; }
+  .spread-row td { background: rgba(108,182,255,.05); }
+  .spread-badge { font-weight: 600; }
+  .recon { padding: 4px 18px 16px; font-size: 14px; font-family: var(--mono); }
+  .recon-ok { color: var(--up); } .recon-bad { color: var(--down); }
+</style>
+</head>
+<body>
+<header>
+  <h1>crypto<span>norm</span> · desk</h1>
+  <span class="conn muted"><span class="dot" id="dot"></span><span id="connText">connecting…</span></span>
+  <div class="spacer"></div>
+  <span class="muted">updated <span id="ts">—</span></span>
+</header>
+
+<main>
+  <div id="alerts"></div>
+  <div class="cards" id="pnlCards"></div>
+  <div class="grid2">
+    <div class="panel">
+      <h2>Cross-exchange prices &amp; spread</h2>
+      <div id="venues"></div>
+    </div>
+    <div class="col">
+      <div class="panel"><h2>Per-asset exposure</h2><table id="exposure"><tbody></tbody></table></div>
+      <div class="panel"><h2>Open positions</h2><table id="positions"><tbody></tbody></table></div>
+      <div class="panel">
+        <h2>Feeds &amp; reconciliation</h2>
+        <div class="chips" id="feeds"></div>
+        <div class="recon" id="recon"></div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const num = (v) => (v === null || v === undefined || v === "") ? null : parseFloat(v);
+const usd = (v, d = 2) => v === null ? "—" : (v < 0 ? "-$" : "$") + Math.abs(v).toLocaleString(undefined, {minimumFractionDigits: d, maximumFractionDigits: d});
+const qty = (v) => v === null ? "—" : v.toLocaleString(undefined, {maximumFractionDigits: 6});
+const sign = (v) => v === null ? "" : (v > 0 ? "up" : v < 0 ? "down" : "");
+const px = (v) => v === null ? "—" : num(v).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+
+function renderPnl(risk) {
+  const cards = [
+    ["Total P&L", risk && num(risk.total_pnl), usd, true],
+    ["Realized", risk && num(risk.realized_pnl), usd, true],
+    ["Unrealized", risk && num(risk.unrealized_pnl), usd, true],
+    ["Fees", risk && num(risk.fees), (v)=>usd(v), false],
+    ["Drawdown", risk && num(risk.drawdown), (v)=>usd(v), false],
+    ["VaR 95%", risk && num(risk.var_95), (v)=>usd(v), false],
+    ["Gross notional", risk && num(risk.gross_notional), (v)=>usd(v,0), false],
+  ];
+  $("pnlCards").innerHTML = cards.map(([label, v, fmt, color]) => `
+    <div class="card"><div class="label">${label}</div>
+      <div class="val ${color ? sign(v) : ''}">${v === null || v === undefined ? "—" : fmt(v)}</div></div>`).join("");
+}
+
+function renderVenues(venues, spreads) {
+  const spreadBy = Object.fromEntries((spreads||[]).map(s => [s.symbol, s]));
+  let html = "";
+  for (const symbol of Object.keys(venues).sort()) {
+    const rows = venues[symbol].slice().sort((a,b)=>a.exchange.localeCompare(b.exchange));
+    const sp = spreadBy[symbol];
+    html += `<table><thead><tr>
+      <th>${symbol}</th><th>bid</th><th>ask</th><th>mid</th><th>last</th><th>feed</th></tr></thead><tbody>`;
+    for (const v of rows) {
+      const cls = v.state === "STALE" ? "stale" : "ok";
+      html += `<tr><td>${v.exchange}</td><td>${px(v.bid)}</td><td>${px(v.ask)}</td>
+        <td>${px(v.mid)}</td><td>${px(v.last_trade)}</td>
+        <td><span class="pill ${cls}">${v.state}</span></td></tr>`;
+    }
+    if (sp) {
+      const bps = num(sp.spread_bps);
+      html += `<tr class="spread-row"><td class="muted">spread</td><td colspan="5" style="text-align:left">
+        <span class="spread-badge up">${usd(num(sp.spread_usd))} · ${bps.toFixed(1)} bps</span>
+        <span class="muted"> — buy ${sp.buy_venue} / sell ${sp.sell_venue}</span></td></tr>`;
+    }
+    html += `</tbody></table>`;
+  }
+  $("venues").innerHTML = html;
+}
+
+function renderExposure(risk) {
+  const ex = (risk && risk.exposures) || [];
+  $("exposure").innerHTML = `<thead><tr><th>asset</th><th>net qty</th><th>net notional</th></tr></thead><tbody>` +
+    (ex.length ? ex.map(e => {
+      const n = num(e.net_notional);
+      return `<tr><td>${e.symbol}</td><td class="${sign(num(e.net_qty))}">${qty(num(e.net_qty))}</td>
+        <td class="${sign(n)}">${usd(n,0)}</td></tr>`;
+    }).join("") : `<tr><td colspan="3" class="muted">no positions yet</td></tr>`) + `</tbody>`;
+}
+
+function renderPositions(risk) {
+  const ps = ((risk && risk.positions) || []).filter(p=>num(p.net_qty)!==0);
+  $("positions").innerHTML = `<thead><tr><th>venue</th><th>asset</th><th>qty</th><th>avg</th><th>uP&L</th></tr></thead><tbody>` +
+    (ps.length ? ps.map(p => `
+      <tr><td>${p.exchange}</td><td>${p.symbol}</td>
+        <td class="${sign(num(p.net_qty))}">${qty(num(p.net_qty))}</td>
+        <td>${px(p.avg_price)}</td>
+        <td class="${sign(num(p.unrealized_pnl))}">${usd(num(p.unrealized_pnl))}</td></tr>`).join("")
+      : `<tr><td colspan="5" class="muted">flat — no open positions</td></tr>`) + `</tbody>`;
+}
+
+function renderFeeds(feeds, recon) {
+  $("feeds").innerHTML = (feeds||[]).map(f =>
+    `<span class="chip ${f.state==='STALE'?'stale':'ok'}">${f.exchange}:${f.symbol} · ${f.state}</span>`).join("")
+    || `<span class="muted">no feeds yet</span>`;
+  if (recon) {
+    $("recon").innerHTML = recon.ok
+      ? `<span class="recon-ok">● reconciliation OK</span> <span class="muted">(${recon.checked} positions checked)</span>`
+      : `<span class="recon-bad">● ${(recon.mismatches||[]).length} reconciliation mismatch(es)</span>`;
+  } else {
+    $("recon").innerHTML = `<span class="muted">awaiting first reconciliation…</span>`;
+  }
+}
+
+function renderAlerts(alerts) {
+  $("alerts").innerHTML = (alerts||[]).map(a =>
+    `<div class="alert ${a.level}"><span>${a.level==='critical'?'⛔':'⚠️'}</span><span>${a.message}</span></div>`).join("");
+}
+
+function render(d) {
+  $("ts").textContent = new Date(d.ts).toLocaleTimeString();
+  renderAlerts(d.alerts);
+  renderPnl(d.risk);
+  renderVenues(d.venues || {}, d.spreads);
+  renderExposure(d.risk);
+  renderPositions(d.risk);
+  renderFeeds(d.feeds, d.recon);
+}
+
+function setConn(on) {
+  $("dot").classList.toggle("on", on);
+  $("connText").textContent = on ? "live" : "reconnecting…";
+}
+
+function connect() {
+  const ws = new WebSocket(`ws://${location.host}/ws`);
+  ws.onopen = () => setConn(true);
+  ws.onmessage = (e) => { try { render(JSON.parse(e.data)); } catch (err) { console.error(err); } };
+  ws.onclose = () => { setConn(false); setTimeout(connect, 2000); };
+  ws.onerror = () => ws.close();
+}
+connect();
+</script>
+</body>
+</html>
