@@ -1,0 +1,24 @@
+{
+  "channel": "trade",
+  "type": "update",
+  "data": [
+    {
+      "symbol": "BTC/USD",
+      "side": "sell",
+      "price": 62370.5,
+      "qty": 0.0001,
+      "ord_type": "limit",
+      "trade_id": 102677144,
+      "timestamp": "2026-06-23T20:48:52.692198Z"
+    },
+    {
+      "symbol": "BTC/USD",
+      "side": "sell",
+      "price": 62369.9,
+      "qty": 2.5e-05,
+      "ord_type": "limit",
+      "trade_id": 102677145,
+      "timestamp": "2026-06-23T20:48:52.692198Z"
+    }
+  ]
+}
